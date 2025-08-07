@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Submit Opportunity - OpportunityHub</title>
+  <meta name="description" content="Post jobs, internships, bursaries to help the community. Referral links only."/>
+  <style>
+    body { font-family: system-ui,-apple-system,BlinkMacSystemFont,sans-serif; background:#f4f6fa; margin:0; color:#222; }
+    .container { max-width:900px; margin:0 auto; padding:16px; }
+    header { background:#242a55; color:#fff; padding:14px; border-radius:8px; }
+    h1 { margin-top:0; }
+    form { background:#fff; padding:16px; border-radius:8px; box-shadow:0 12px 40px rgba(0,0,0,0.05); display:grid; gap:12px; }
+    input, select, textarea { padding:10px; border:1px solid #d9e2ef; border-radius:6px; width:100%; font-size:1rem; }
+    button { padding:12px 20px; background: linear-gradient(135deg,#667eea,#764ba2); border:none; color:#fff; font-weight:600; border-radius:8px; cursor:pointer; }
+    .stats { margin:10px 0; background:#fff; padding:12px; border-radius:6px; display:flex; gap:20px; flex-wrap:wrap; }
+    .listing-preview, .listing-management { background:#fff; padding:12px; border-radius:6px; margin-top:16px; box-shadow:0 8px 30px rgba(0,0,0,0.04); }
+    .ad-zone { background:#e8eaf6; padding:12px; text-align:center; border-radius:6px; margin:14px 0; }
+    .small-btn { background:#6c757d; padding:6px 12px; border:none; color:#fff; border-radius:6px; cursor:pointer; font-size:.75rem; margin-right:6px; }
+    .sync-btn { background:#20c997; }
+    a { color:#667eea; text-decoration:none;}
+    .expired-tag { background:#f8d7da; color:#842029; padding:4px 8px; border-radius:4px; font-size:.65rem; margin-left:6px; display:inline-block; }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <h1>Post an Opportunity</h1>
+      <p>Help your community by sharing current open roles, bursaries, internships, and graduate programs.</p>
+    </header>
+
+    <div class="stats">
+      <div><strong>Total posted:</strong> <span id="totalCount">0</span></div>
+      <div><strong>Views (approx):</strong> <span id="viewCount">0</span></div>
+      <div>
+        <button id="syncNow" class="small-btn sync-btn">Sync Now</button>
+      </div>
+    </div>
+
+    <div class="ad-zone">Top ad placeholder (you can replace with AdSense slot once approved)</div>
+
+    <form id="postForm">
+      <input type="text" id="title" placeholder="Title" required />
+      <input type="text" id="company" placeholder="Company/Organization" required />
+      <select id="type" required>
+        <option value="">Type</option>
+        <option value="Job">Job</option>
+        <option value="Bursary">Bursary</option>
+        <option value="Internship">Internship</option>
+        <option value="Graduate Program">Graduate Program</option>
+      </select>
+      <input type="text" id="category" placeholder="Category (e.g., IT, Healthcare)" required />
+      <textarea id="description" placeholder="Description" required></textarea>
+      <input type="text" id="location" placeholder="Location" required />
+      <input type="text" id="salary" placeholder="Salary / Award amount" />
+      <input type="date" id="deadline" required />
+      <input type="url" id="contact" placeholder="Application link (referral)" required />
+      <button type="submit">Post Opportunity</button>
+    </form>
+
+    <div class="listing-preview" id="previewContainer">
+      <h3>Most Recent Opportunity Preview</h3>
+      <div id="preview"></div>
+    </div>
+
+    <div class="listing-management">
+      <h3>Current Posted Opportunities</h3>
+      <button id="removeExpired" style="margin-bottom:10px; padding:8px 14px; border:none; background:#d9534f; color:#fff; border-radius:6px; cursor:pointer;">
+        Remove All Expired
+      </button>
+      <div id="allListings"></div>
+    </div>
+
+    <div class="ad-zone">Bottom ad placeholder</div>
+
+    <footer style="margin-top:30px; font-size:.8rem; text-align:center;">
+      <p>OpportunityHub is a referral aggregator. Applicants go to the real platform via the link provided; no application is stored here other than the listing metadata.</p>
+    </footer>
+  </div>
+
+  <script>
+    // Shared storage and notification channel
+    let listings = JSON.parse(localStorage.getItem('opportunities') || '[]');
+    let views = parseInt(localStorage.getItem('viewCount') || '0');
+    const bc = new BroadcastChannel('opp_updates');
+
+    function updateStats() {
+      document.getElementById('totalCount').textContent = listings.length;
+      document.getElementById('viewCount').textContent = views;
+    }
+
+    function isExpired(deadlineStr) {
+      if (!deadlineStr) return false;
+      const today = new Date();
+      const d = new Date(deadlineStr);
+      d.setHours(23,59,59,999);
+      return d < today;
+    }
+
+    function renderPreview() {
+      const container = document.getElementById('preview');
+      if (listings.length === 0) {
+        container.innerHTML = '<p>No postings yet.</p>';
+        return;
+      }
+      const o = listings[0];
+      container.innerHTML = `
+        <strong>${o.title}</strong> at <em>${o.company}</em><br/>
+        Type: ${o.type} • Category: ${o.category}<br/>
+        Location: ${o.location} • Deadline: ${o.deadline}<br/>
+        <div style="margin-top:6px;">Referral: <a href="${o.contact}" target="_blank">${o.contact}</a></div>
+        <div style="font-size:0.8rem; color:#555;">Posted: ${o.date || ''}</div>
+      `;
+    }
+
+    function renderAllListings() {
+      const container = document.getElementById('allListings');
+      container.innerHTML = '';
+      if (listings.length === 0) {
+        container.innerHTML = '<p>No opportunities posted yet.</p>';
+        return;
+      }
+      listings.forEach(o => {
+        const expired = isExpired(o.deadline);
+        const card = document.createElement('div');
+        card.style = 'background:#fff; padding:12px; margin-bottom:10px; border-radius:6px; box-shadow:0 5px 15px rgba(0,0,0,0.03); position:relative;';
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px;">
+            <div style="flex:1; min-width:220px;">
+              <strong>${o.title}</strong> at <em>${o.company}</em> ${expired ? '<span class="expired-tag">Expired</span>' : ''}
+              <div style="font-size:.85rem; margin-top:4px;">
+                ${o.type} • ${o.category} • ${o.location} • Closes: ${o.deadline}
+              </div>
+            </div>
+            <div style="display:flex; gap:8px; align-items:center; flex-wrap:wrap;">
+              <a href="${o.contact}" target="_blank" style="text-decoration:none; background: #0d6efd; color:#fff; padding:6px 12px; border-radius:6px; font-size:.8rem;">Referral Link</a>
+              <button data-id="${o.id}" class="delete-btn" style="background:#dc3545; border:none; color:#fff; padding:6px 12px; border-radius:6px; cursor:pointer; font-size:.8rem;">
+                Delete
+              </button>
+            </div>
+          </div>
+          <div style="font-size:.65rem; color:#555; margin-top:6px;">Posted: ${o.date || ''}</div>
+        `;
+        container.appendChild(card);
+      });
+
+      // wire delete handlers with normalized comparison
+      document.querySelectorAll('.delete-btn').forEach(btn => {
+        btn.onclick = () => {
+          const id = btn.getAttribute('data-id');
+          if (!confirm('Delete this opportunity?')) return;
+          listings = listings.filter(o => o.id.toString() !== id);
+          persistAndUpdate();
+        };
+      });
+    }
+
+    function persistAndUpdate() {
+      localStorage.setItem('opportunities', JSON.stringify(listings));
+      localStorage.setItem('opportunities_updated_at', Date.now());
+      views = parseInt(localStorage.getItem('viewCount') || '0');
+      updateStats();
+      renderPreview();
+      renderAllListings();
+      bc.postMessage({ type: 'new-opportunity' });
+    }
+
+    document.getElementById('postForm').addEventListener('submit', function(e){
+      e.preventDefault();
+      const newItem = {
+        title: document.getElementById('title').value.trim(),
+        company: document.getElementById('company').value.trim(),
+        type: document.getElementById('type').value,
+        category: document.getElementById('category').value.trim(),
+        description: document.getElementById('description').value.trim(),
+        location: document.getElementById('location').value.trim(),
+        salary: document.getElementById('salary').value.trim(),
+        deadline: document.getElementById('deadline').value,
+        contact: document.getElementById('contact').value.trim(),
+        date: new Date().toLocaleDateString(),
+        id: Date.now().toString()
+      };
+      listings.unshift(newItem);
+      persistAndUpdate();
+      this.reset();
+      alert('Opportunity posted. It will appear on the browse page. Applicants use the referral link to apply.');
+    });
+
+    document.getElementById('removeExpired').addEventListener('click', () => {
+      const before = listings.length;
+      listings = listings.filter(o => !isExpired(o.deadline));
+      if (listings.length === before) {
+        alert('No expired opportunities to remove.');
+        return;
+      }
+      persistAndUpdate();
+      alert('Expired opportunities removed.');
+    });
+
+    document.getElementById('syncNow').addEventListener('click', () => {
+      localStorage.setItem('opportunities', JSON.stringify(listings));
+      localStorage.setItem('opportunities_updated_at', Date.now());
+      bc.postMessage({ type: 'new-opportunity' });
+      alert('Sync broadcasted.');
+    });
+
+    function load() {
+      updateStats();
+      renderPreview();
+      renderAllListings();
+    }
+
+    load();
+
+    window.addEventListener('storage', e => {
+      if (e.key === 'opportunities') {
+        listings = JSON.parse(e.newValue || '[]');
+        renderPreview();
+        renderAllListings();
+        updateStats();
+      }
+    });
+
+    bc.onmessage = (msg) => {
+      if (msg.data?.type === 'new-opportunity') {
+        listings = JSON.parse(localStorage.getItem('opportunities') || '[]');
+        renderPreview();
+        renderAllListings();
+        updateStats();
+      }
+    };
+  </script>
+</body>
+</html>

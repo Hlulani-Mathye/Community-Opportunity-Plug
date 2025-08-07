@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>OpportunityHub - Browse Opportunities</title>
+  <meta name="description" content="Browse student/internship, graduate programs, jobs and bursaries. Referral links. No account needed; optional email signup for updates."/>
+  <script async src="https://pagead2.googlesyndication.com/pagead/js/adsbygoogle.js?client=pub-9716270329156370" crossorigin="anonymous"></script>
+  <style>
+    :root {
+      --radius: 12px;
+      --shadow: 0 15px 40px rgba(0,0,0,0.06);
+      --transition: .25s ease;
+    }
+    * { box-sizing:border-box; }
+    body { margin:0; font-family: system-ui,-apple-system,BlinkMacSystemFont,sans-serif; background: #f0f4f6; color:#1f2d3a; }
+    .container { max-width:1150px; margin:0 auto; padding:16px; }
+    header { display:flex; flex-wrap:wrap; justify-content:space-between; align-items:center; padding:16px 0; }
+    .logo { font-size:1.7rem; font-weight:700; color:#4f46e5; }
+    .nav { display:flex; gap:16px; flex-wrap:wrap; align-items:center; }
+    .nav a { text-decoration:none; color:#374151; font-weight:500; padding:6px 12px; border-radius:8px; }
+    .nav a:hover { background:rgba(102,126,234,0.1); }
+    .flex { display:flex; gap:16px; }
+    .card { background:#fff; border-radius:var(--radius); padding:16px; box-shadow:var(--shadow); position:relative; display:flex; flex-direction:column; transition:transform var(--transition); }
+    .card:hover { transform:translateY(-3px); }
+    .filters { background:#fff; padding:14px; border-radius:10px; display:flex; flex-wrap:wrap; gap:12px; margin-bottom:16px; align-items:center; }
+    .filter-group { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    input, select { padding:10px 14px; border:1px solid #d1d5db; border-radius:8px; font-size:1rem; }
+    .search { flex:1; min-width:180px; }
+    .btn { padding:10px 16px; border:none; border-radius:8px; cursor:pointer; font-weight:600; }
+    .btn-primary { background: linear-gradient(135deg,#667eea,#764ba2); color:#fff; }
+    .btn-secondary { background:#f3f4f6; color:#374151; }
+    .grid { display:grid; gap:16px; grid-template-columns: repeat(auto-fit,minmax(280px,1fr)); }
+    .sidebar { flex:1; min-width:250px; display:flex; flex-direction:column; gap:14px; }
+    .panel { background:#fff; border-radius:12px; padding:16px; box-shadow:var(--shadow); }
+    .small { font-size:.85rem; }
+    .tag { background:#f3f4f6; padding:6px 12px; border-radius:999px; font-size:.65rem; margin-right:6px; display:inline-block; }
+    .detail-overlay {
+      position:fixed;
+      inset:0;
+      background:rgba(0,0,0,0.35);
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      padding:20px;
+      z-index:1000;
+    }
+    .detail-box {
+      background:#fff;
+      border-radius:14px;
+      max-width:800px;
+      width:100%;
+      padding:24px;
+      position:relative;
+      box-shadow:0 30px 60px rgba(0,0,0,0.15);
+    }
+    .close-btn {
+      position:absolute;
+      top:12px;
+      right:12px;
+      background:none;
+      border:none;
+      font-size:1.2rem;
+      cursor:pointer;
+    }
+    .profile {
+      position:relative;
+      display:inline-block;
+    }
+    .profile-btn {
+      background:#f3f4f6;
+      border:1px solid #d1d5db;
+      padding:8px 14px;
+      border-radius:999px;
+      cursor:pointer;
+      display:flex;
+      align-items:center;
+      gap:6px;
+      font-size:.9rem;
+    }
+    .dropdown {
+      position:absolute;
+      right:0;
+      top:110%;
+      background:#fff;
+      border-radius:10px;
+      box-shadow:0 20px 60px rgba(0,0,0,0.15);
+      padding:14px;
+      width:260px;
+      z-index:10;
+      font-size:.9rem;
+    }
+    .dropdown input { width:100%; margin-bottom:8px; }
+    .status { background:#d1fae5; color:#065f46; padding:6px 14px; border-radius:20px; font-size:.75rem; display:inline-block; margin-bottom:8px; }
+    .hidden { display:none; }
+    .disclosure { font-size:.85rem; margin-top:8px; color:#555; }
+    footer { margin-top:40px; padding:24px; background:#fff; border-radius:12px; font-size:.85rem; }
+    .ad { margin:16px 0; }
+    @media (max-width: 1024px) {
+      .flex { flex-direction:column; }
+    }
+  </style>
+</head>
+<body>
+  <div class="container">
+    <header>
+      <div class="logo">OpportunityHub</div>
+      <nav class="nav">
+        <a href="#">Home</a>
+        <a href="#opportunities">Browse</a>
+        <a href="postJob.html">Submit</a>
+        <a href="privacy.html">Privacy</a>
+        <a href="terms.html">Terms</a>
+      </nav>
+      <div class="profile">
+        <button class="profile-btn" id="profileToggle">
+          <span id="profileLabel">Profile</span>
+          ▼
+        </button>
+        <div class="dropdown hidden" id="profileDropdown">
+          <div id="verifiedBanner" class="status hidden">
+            Verified: <span id="verifiedEmail"></span>
+          </div>
+          <div id="signupSection">
+            <div style="margin-bottom:6px;"><strong>Stay updated:</strong> verify your email to get alerts.</div>
+            <input type="email" id="emailInput" placeholder="you@example.com" aria-label="email for signup">
+            <button id="signupBtn" class="btn btn-primary" style="width:100%; margin-top:6px;">Sign up & Verify</button>
+            <div id="signupMsg" class="small" style="margin-top:6px;"></div>
+          </div>
+          <div id="accountActions" style="margin-top:8px;">
+            <button id="logoutBtn" class="btn btn-secondary" style="width:100%;">Log out</button>
+          </div>
+        </div>
+      </div>
+    </header>
+
+    <!-- Filters -->
+    <div class="filters" aria-label="Opportunity filters">
+      <div class="filter-group">
+        <label for="typeFilter">Type:</label>
+        <select id="typeFilter">
+          <option value="all">All</option>
+          <option value="Job">Job</option>
+          <option value="Internship">Internship</option>
+          <option value="Graduate Program">Graduate Program</option>
+          <option value="Bursary">Bursary</option>
+        </select>
+      </div>
+      <div class="filter-group">
+        <label for="categoryFilter">Category:</label>
+        <input type="text" id="categoryFilter" placeholder="e.g., IT, Healthcare" />
+      </div>
+      <div class="filter-group">
+        <label for="locationFilter">Location:</label>
+        <input type="text" id="locationFilter" placeholder="e.g., Johannesburg" />
+      </div>
+      <div class="filter-group" style="flex:1;">
+        <input type="text" id="searchInput" placeholder="Keyword search (title, company, description)" style="width:100%;" />
+      </div>
+      <div>
+        <button id="clearFilters" class="btn btn-secondary">Clear</button>
+      </div>
+    </div>
+
+    <!-- Top Ad -->
+    <div class="ad">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="pub-9716270329156370"
+           data-ad-slot="1234567890"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+
+    <div class="flex">
+      <div style="flex:3;">
+        <!-- Listing grid -->
+        <div id="listings" class="grid"></div>
+        <div id="noResults" style="padding:14px; background:#fff3f0; border-radius:8px; margin-top:12px; display:none;">
+          No opportunities match your search. Try adjusting filters.
+        </div>
+      </div>
+      <div class="sidebar" style="flex:1;">
+        <div class="panel">
+          <h3>Quick Filters</h3>
+          <div style="display:flex; gap:8px; flex-wrap:wrap;">
+            <button class="btn btn-secondary" data-shortcut-type="Job">Jobs</button>
+            <button class="btn btn-secondary" data-shortcut-type="Internship">Internships</button>
+            <button class="btn btn-secondary" data-shortcut-type="Graduate Program">Graduate Programs</button>
+            <button class="btn btn-secondary" data-shortcut-type="Bursary">Bursaries</button>
+          </div>
+        </div>
+        <div class="panel">
+          <h3>About</h3>
+          <p>All opportunities are referral links. <strong>How to apply:</strong> click the link in the detail view below. You will be taken to the real platform to complete your application.</p>
+        </div>
+        <div class="panel">
+          <h3>Ad</h3>
+          <div style="margin-top:8px;">
+            <ins class="adsbygoogle"
+                 style="display:inline-block;width:300px;height:250px"
+                 data-ad-client="pub-9716270329156370"
+                 data-ad-slot="1122334455"></ins>
+            <script>
+              (adsbygoogle = window.adsbygoogle || []).push({});
+            </script>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Bottom Ad -->
+    <div class="ad">
+      <ins class="adsbygoogle"
+           style="display:block"
+           data-ad-client="pub-9716270329156370"
+           data-ad-slot="0987654321"
+           data-ad-format="auto"
+           data-full-width-responsive="true"></ins>
+      <script>
+        (adsbygoogle = window.adsbygoogle || []).push({});
+      </script>
+    </div>
+
+    <!-- Detail modal -->
+    <div id="detailOverlay" class="detail-overlay hidden" aria-hidden="true">
+      <div class="detail-box" role="dialog" aria-modal="true">
+        <button class="close-btn" aria-label="Close detail">&times;</button>
+        <div id="detailContent"></div>
+      </div>
+    </div>
+
+    <footer>
+      <div style="display:flex; flex-wrap:wrap; gap:30px;">
+        <div style="flex:1; min-width:180px;">
+          <h4>Links</h4>
+          <a href="#opportunities">Browse</a><br/>
+          <a href="postJob.html">Submit</a><br/>
+          <a href="privacy.html">Privacy</a><br/>
+          <a href="terms.html">Terms</a>
+        </div>
+        <div style="flex:1; min-width:180px;">
+          <h4>Legal</h4>
+          <a href="#jobs">Browse Jobs</a><br/>
+          <a href="#bursaries">Find Bursaries</a><br/>
+          <a href="#submit">Submit Opportunity</a><br/>
+          <a href="#resources">Career Resources</a>
+        </div>
+        <div style="flex:1; min-width:180px;">
+          <h4>Community</h4>
+          <p>&copy; 2025 OpportunityHub. All rights reserved.</p>
+        </div>
+      </div>
+    </footer>
+  </div>
+
+  <script>
+    // === state ===
+    let opportunities = [];
+    let filtered = [];
+    const detailOverlay = document.getElementById('detailOverlay');
+    const detailContent = document.getElementById('detailContent');
+    const typeFilter = document.getElementById('typeFilter');
+    const categoryFilter = document.getElementById('categoryFilter');
+    const locationFilter = document.getElementById('locationFilter');
+    const searchInput = document.getElementById('searchInput');
+    const listingsEl = document.getElementById('listings');
+    const noResults = document.getElementById('noResults');
+
+    // profile/signup state
+    const emailKey = 'ohub_verified_email';
+    const verifiedKey = 'ohub_email_verified';
+
+    function isVerified() {
+      return localStorage.getItem(verifiedKey) === 'true';
+    }
+    function getEmail() {
+      return localStorage.getItem(emailKey) || '';
+    }
+    function setVerified(email) {
+      localStorage.setItem(emailKey, email);
+      localStorage.setItem(verifiedKey, 'true');
+    }
+    function clearVerified() {
+      localStorage.removeItem(emailKey);
+      localStorage.removeItem(verifiedKey);
+    }
+
+    function updateProfileUI() {
+      if (isVerified()) {
+        document.getElementById('verifiedBanner').classList.remove('hidden');
+        document.getElementById('verifiedEmail').textContent = getEmail();
+        document.getElementById('signupSection').classList.add('hidden');
+        document.getElementById('profileLabel').textContent = getEmail();
+      } else {
+        document.getElementById('verifiedBanner').classList.add('hidden');
+        document.getElementById('signupSection').classList.remove('hidden');
+        document.getElementById('profileLabel').textContent = 'Profile';
+      }
+    }
+
+    // toggle dropdown
+    document.getElementById('profileToggle').addEventListener('click', (e) => {
+      e.stopPropagation();
+      document.getElementById('profileDropdown').classList.toggle('hidden');
+    });
+    // clicking outside closes
+    window.addEventListener('click', () => {
+      document.getElementById('profileDropdown').classList.add('hidden');
+    });
+    document.getElementById('profileDropdown').addEventListener('click', e => e.stopPropagation());
+
+    // fetch and filter
+    function loadOpportunities() {
+      opportunities = JSON.parse(localStorage.getItem('opportunities') || '[]');
+      applyFilters();
+    }
+
+    function applyFilters() {
+      const typeVal = typeFilter.value;
+      const cat = categoryFilter.value.trim().toLowerCase();
+      const loc = locationFilter.value.trim().toLowerCase();
+      const kw = searchInput.value.trim().toLowerCase();
+      filtered = opportunities.filter(o => {
+        if (typeVal !== 'all' && o.type !== typeVal) return false;
+        if (cat && !(o.category||'').toLowerCase().includes(cat)) return false;
+        if (loc && !(o.location||'').toLowerCase().includes(loc)) return false;
+        if (kw) {
+          const inTitle = o.title?.toLowerCase().includes(kw);
+          const inCompany = o.company?.toLowerCase().includes(kw);
+          const inDesc = o.description?.toLowerCase().includes(kw);
+          if (!(inTitle || inCompany || inDesc)) return false;
+        }
+        return true;
+      });
+      renderListings();
+    }
+
+    function renderListings() {
+      listingsEl.innerHTML = '';
+      if (filtered.length === 0) {
+        noResults.style.display = 'block';
+        return;
+      }
+      noResults.style.display = 'none';
+      filtered.forEach(o => {
+        const card = document.createElement('div');
+        card.className = 'card';
+        const deadlineText = o.deadline ? `Closes: ${o.deadline}` : 'No deadline';
+        card.innerHTML = `
+          <div style="display:flex; justify-content:space-between; flex-wrap:wrap; gap:10px;">
+            <div style="flex:1; min-width:180px;">
+              <h3 style="margin:0 0 6px;">${o.title}</h3>
+              <div class="tag">${o.type}</div>
+              <div style="font-size:.85rem; margin:4px 0;">
+                <span>${o.company || 'Unknown'}</span> • <span>${o.location || 'Remote/Any'}</span> • <span>${o.category || 'General'}</span>
+              </div>
+            </div>
+            <div style="display:flex; flex-direction:column; gap:8px; align-items:flex-end;">
+              <div style="font-size:.9rem; color:#555;">${deadlineText}</div>
+              <button class="btn btn-primary detail-btn" data-id="${o.id}">View Details</button>
+            </div>
+          </div>
+        `;
+        listingsEl.appendChild(card);
+      });
+
+      document.querySelectorAll('.detail-btn').forEach(b => {
+        b.onclick = () => {
+          const id = b.getAttribute('data-id');
+          const opp = opportunities.find(x => x.id.toString() === id);
+          if (!opp) return;
+          showDetail(opp);
+        };
+      });
+    }
+
+    function showDetail(o) {
+      detailContent.innerHTML = `
+        <h2>${o.title}</h2>
+        <div style="margin:6px 0;">
+          <span class="tag">${o.type}</span>
+          <span class="tag">${o.category || 'General'}</span>
+          <span class="tag">${o.location || 'Any'}</span>
+        </div>
+        <p><strong>Organization:</strong> ${o.company || 'Unknown'}</p>
+        <p><strong>Description:</strong></p>
+        <p>${o.description}</p>
+        <p><strong>Deadline:</strong> ${o.deadline || 'N/A'}</p>
+        <div class="disclosure">
+          <p><strong>Referral disclosure:</strong> This is a referral link. How to apply: click the link below.</p>
+        </div>
+        <div style="margin:14px 0;">
+          <a href="${o.contact || '#'}" target="_blank" class="btn btn-primary" style="padding:12px 20px; font-size:1rem;">Apply (Referral)</a>
+        </div>
+        <div style="font-size:.75rem; color:#666;">Posted: ${o.date || ''}</div>
+      `;
+      detailOverlay.classList.remove('hidden');
+      detailOverlay.setAttribute('aria-hidden', 'false');
+    }
+
+    document.getElementById('clearFilters').addEventListener('click', () => {
+      typeFilter.value = 'all';
+      categoryFilter.value = '';
+      locationFilter.value = '';
+      searchInput.value = '';
+      applyFilters();
+    });
+
+    document.querySelectorAll('[data-shortcut-type]').forEach(b => {
+      b.addEventListener('click', () => {
+        typeFilter.value = b.getAttribute('data-shortcut-type');
+        applyFilters();
+      });
+    });
+
+    [typeFilter, categoryFilter, locationFilter, searchInput].forEach(el => {
+      el.addEventListener('input', applyFilters);
+    });
+
+    document.querySelector('.close-btn').addEventListener('click', () => {
+      detailOverlay.classList.add('hidden');
+      detailOverlay.setAttribute('aria-hidden', 'true');
+    });
+    detailOverlay.addEventListener('click', (e) => {
+      if (e.target === detailOverlay) {
+        detailOverlay.classList.add('hidden');
+        detailOverlay.setAttribute('aria-hidden', 'true');
+      }
+    });
+
+    // signup / verification
+    const signupBtn = document.getElementById('signupBtn');
+    const emailInput = document.getElementById('emailInput');
+    const signupMsg = document.getElementById('signupMsg');
+    const logoutBtn = document.getElementById('logoutBtn');
+
+    signupBtn.addEventListener('click', async () => {
+      const email = emailInput.value.trim();
+      if (!email || !email.includes('@')) {
+        signupMsg.textContent = 'Enter a valid email.';
+        return;
+      }
+      signupMsg.textContent = 'Sending verification email...';
+      try {
+        const res = await fetch('/signup', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ email })
+        });
+        const data = await res.json();
+        if (res.ok) {
+          signupMsg.innerHTML = 'Verification email sent. Check your inbox.';
+        } else {
+          signupMsg.textContent = data.detail || 'Signup failed.';
+        }
+      } catch (err) {
+        console.error(err);
+        signupMsg.textContent = 'Network error.';
+      }
+    });
+
+    logoutBtn.addEventListener('click', () => {
+      clearVerified();
+      updateProfileUI();
+    });
+
+    async function checkVerificationFromURL() {
+      const params = new URLSearchParams(window.location.search);
+      if (params.has('token')) {
+        const token = params.get('token');
+        try {
+          const res = await fetch(`/verify?token=${encodeURIComponent(token)}`);
+          const data = await res.json();
+          if (res.ok) {
+            setVerified(data.email);
+            updateProfileUI();
+            alert('Email verified. You will receive updates when new matching opportunities arrive.');
+          } else {
+            alert(data.detail || 'Verification failed.');
+          }
+        } catch (e) {
+          console.error(e);
+        }
+      }
+    }
+
+    function initProfile() {
+      updateProfileUI();
+    }
+
+    function updateProfileUI() {
+      if (isVerified()) {
+        document.getElementById('verifiedBanner').classList.remove('hidden');
+        document.getElementById('verifiedEmail').textContent = getEmail();
+        document.getElementById('signupSection').classList.add('hidden');
+        document.getElementById('profileLabel').textContent = getEmail();
+      } else {
+        document.getElementById('verifiedBanner').classList.add('hidden');
+        document.getElementById('signupSection').classList.remove('hidden');
+        document.getElementById('profileLabel').textContent = 'Profile';
+      }
+    }
+
+    // initial
+    function init() {
+      initProfile();
+      loadOpportunities();
+      checkVerificationFromURL();
+    }
+
+    init();
+
+    // auto-sync from other tab
+    window.addEventListener('storage', (e) => {
+      if (e.key === 'opportunities') {
+        loadOpportunities();
+      }
+    });
+
+    // polling fallback
+    setInterval(() => {
+      const current = JSON.parse(localStorage.getItem('opportunities') || '[]');
+      if (JSON.stringify(current) !== JSON.stringify(opportunities)) {
+        loadOpportunities();
+      }
+    }, 3000);
+  </script>
+</body>
+</html>
